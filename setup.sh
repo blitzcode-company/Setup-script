@@ -91,7 +91,6 @@ function join_domain_blitzcode {
     
     echo "Verificando configuración de dominio..."
     realm list
-    ping Blitzcode.company
     echo "Unión al dominio Blitzcode completada."
 }
 
