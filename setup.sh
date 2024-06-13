@@ -95,6 +95,45 @@ function join_domain_blitzcode {
     echo "Unión al dominio Blitzcode completada."
 }
 
+function install_node_exporter {
+    echo "Instalando Node Exporter..."
+    NODE_EXPORTER_VERSION="1.8.1"
+    cd /tmp
+    wget https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+    tar xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+    sudo mv node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter /usr/local/bin/
+    rm -rf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64*
+    
+    echo "Creando usuario node_exporter..."
+    sudo useradd -rs /bin/false node_exporter
+
+    echo "Creando archivo de servicio systemd para Node Exporter..."
+    sudo bash -c 'cat <<EOF > /etc/systemd/system/node_exporter.service
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=default.target
+EOF'
+
+    echo "Recargando demonio systemd..."
+    sudo systemctl daemon-reload
+    
+    echo "Habilitando y arrancando Node Exporter..."
+    sudo systemctl enable node_exporter
+    sudo systemctl start node_exporter
+    
+    echo "Node Exporter instalado y ejecutándose como servicio."
+}
+
 # Menu principal
 while true; do
     echo "Seleccione una opción:"
@@ -107,10 +146,12 @@ while true; do
     echo "7. Instalar Docker Compose"
     echo "8. Instalar dependencias para unir al dominio"
     echo "9. Unir al dominio Blitzcode"
-    echo "10. Salir"
+    echo "10. Instalar Node Exporter"
+    echo "0. Salir"
     read -p "Opción: " option
 
     case $option in
+        0) exit ;;
         1) update_system ;;
         2) install_dependencies ;;
         3) install_php ;;
@@ -120,8 +161,7 @@ while true; do
         7) install_docker_compose ;;
         8) install_domain_dependencies ;;
         9) join_domain_blitzcode ;;
-        10) exit ;;
+        10) install_node_exporter ;;
         *) echo "Opción inválida. Inténtelo de nuevo." ;;
     esac
 done
-
