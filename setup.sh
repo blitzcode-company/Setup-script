@@ -176,7 +176,6 @@ function configure_shorewall {
 sudo yum install -y shorewall
 
 # Configuración de zonas
-echo "Configurando zonas..."
 cat <<EOF | sudo tee /etc/shorewall/zones
 #ZONE    TYPE      OPTIONS
 fw       firewall
@@ -185,8 +184,6 @@ net      ipv4      dhcp,nosmurfs,tcpflags=1,routeback=1,routefilter=1
 EOF
 
 # Configuración de interfaces
-echo "Configurando interfaces..."
-
 cat <<EOF | sudo tee /etc/shorewall/interfaces
 #ZONE    INTERFACE    BROADCAST    OPTIONS
 lan      enp0s3       detect       dhcp
@@ -194,8 +191,6 @@ net      enp0s8       detect       dhcp
 EOF
 
 # Configuración de políticas
-echo "Configurando politicas..."
-
 cat <<EOF | sudo tee /etc/shorewall/policy
 #SOURCE    DEST      POLICY      LOG LEVEL    LIMIT
 fw         all       ACCEPT
@@ -205,8 +200,6 @@ all        all       REJECT      info
 EOF
 
 # Configuración de reglas
-echo "Configurando reglas..."
-
 cat <<EOF | sudo tee /etc/shorewall/rules
 #ACTION    SOURCE          DEST        PROTO   DEST PORT     SOURCE PORT
 ACCEPT     192.168.1.101   $FW         tcp     22            # SSH desde back office
@@ -230,48 +223,28 @@ ACCEPT     lan             $FW             icmp    -            -             # 
 ACCEPT     lan             $FW             tcp     22            -             # Permitir SSH al firewall
 EOF
 
-# Configuración de hosts
-echo "Configurando hosts..."
-
-cat <<EOF | sudo tee /etc/shorewall/hosts
-#ZONE    HOST(S)
-lan      enp0s3:192.168.1.0/24
-net      enp0s8:dhcp
-EOF
-
 # Habilitar clampmss en Shorewall
-echo "Habilitando clampmss..."
-
 sudo sed -i 's/^#?CLAMPMSS=.*$/CLAMPMSS=Yes/' /etc/shorewall/shorewall.conf
 
 # Habilitar Shorewall en el inicio del sistema
-echo "Habilitando Shorewall al inicio del sistema..."
-
 sudo sed -i 's/STARTUP_ENABLED=.*/STARTUP_ENABLED=Yes/' /etc/shorewall/shorewall.conf
 
 # Habilitar IP forwarding en sysctl.conf
-echo "Habilitando IP forwarding en sysctl.conf..."
-
 sudo sed -i '/net.ipv4.ip_forward/s/^#//g' /etc/sysctl.conf
 
 # Reiniciar configuración de sysctl
-echo "Reiniciando configuracion en sysctl.conf..."
-
 sudo sysctl -p /etc/sysctl.conf
 
-# Habilitar DETECT_DNAT_IPADDRS en Shorewall
-echo "Habilitando DETECT_DNAT_IPADDRS en Shorewall..."
+# Habilitar IP forwarding en iptables
+sudo iptables -P FORWARD ACCEPT
 
+# Habilitar DETECT_DNAT_IPADDRS en Shorewall
 sudo sed -i 's/^#?DETECT_DNAT_IPADDRS=.*$/DETECT_DNAT_IPADDRS=Yes/' /etc/shorewall/shorewall.conf
 
 # Habilitar FASTACCEPT en Shorewall
-echo "Habilitando FASTACCEPT en Shorewall..."
-
 sudo sed -i 's/^#?FASTACCEPT=.*$/FASTACCEPT=Yes/' /etc/shorewall/shorewall.conf
 
 # Habilitar IP_FORWARDING en Shorewall
-echo "Habilitando IP_FORWARDING en Shorewall..."
-
 sudo sed -i 's/^#?IP_FORWARDING=.*$/IP_FORWARDING=On/' /etc/shorewall/shorewall.conf
 
 # Habilitar y arrancar Shorewall
