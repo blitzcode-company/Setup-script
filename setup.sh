@@ -132,6 +132,127 @@ EOF'
     
     echo "Node Exporter instalado y ejecutándose como servicio."
 }
+function install_node_exporter {
+    echo "Instalando Node Exporter..."
+    NODE_EXPORTER_VERSION="1.8.1"
+    cd /tmp
+    wget https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+    tar xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+    sudo mv node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter /usr/local/bin/
+    rm -rf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64*
+    
+    echo "Creando usuario node_exporter..."
+    sudo useradd -rs /bin/false node_exporter
+
+    echo "Creando archivo de servicio systemd para Node Exporter..."
+    sudo bash -c 'cat <<EOF > /etc/systemd/system/node_exporter.service
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=default.target
+EOF'
+
+    echo "Recargando demonio systemd..."
+    sudo systemctl daemon-reload
+    
+    echo "Habilitando y arrancando Node Exporter..."
+    sudo systemctl enable node_exporter
+    sudo systemctl start node_exporter
+    
+    echo "Node Exporter instalado y ejecutándose como servicio."
+}
+
+function configure_shorewall {
+    echo "Configurando Shorewall..."
+
+    # Instalar Shorewall si no está instalado
+    if ! rpm -q shorewall >/dev/null 2>&1; then
+        echo "Instalando Shorewall..."
+        sudo yum install -y shorewall
+    fi
+
+    # Habilitar Shorewall en shorewall.conf
+    sudo sed -i 's/STARTUP_ENABLED=No/STARTUP_ENABLED=Yes/' /etc/shorewall/shorewall.conf
+
+    # Configurar zonas en /etc/shorewall/zones
+    sudo bash -c 'cat <<EOL > /etc/shorewall/zones
+#ZONE    TYPE        OPTIONS
+fw       firewall
+loc      ipv4
+dmz      ipv4
+net      ipv4
+EOL'
+
+    # Configurar interfaces en /etc/shorewall/interfaces
+    sudo bash -c 'cat <<EOL > /etc/shorewall/interfaces
+#ZONE    INTERFACE    BROADCAST    OPTIONS
+loc      enp0s3         detect       dhcp
+dmz      enp0s3         detect       dhcp
+net      enp0s8         detect       dhcp
+EOL'
+
+    # Configurar políticas en /etc/shorewall/policy
+    sudo bash -c 'cat <<EOL > /etc/shorewall/policy
+#SOURCE    DEST    POLICY     LOG LEVEL
+loc        net     ACCEPT
+dmz        net     ACCEPT
+loc        dmz     ACCEPT
+dmz        loc     ACCEPT
+loc        all     DROP       info
+dmz        all     DROP       info
+net        all     DROP       info
+all        all     REJECT     info
+EOL'
+
+    # Configurar reglas en /etc/shorewall/rules
+    sudo bash -c 'cat <<EOL > /etc/shorewall/rules
+#ACTION     SOURCE                  DEST            PROTO    DEST PORT   SOURCE PORT
+# Permitir acceso desde Back Office a servidores de base de datos
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.105
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.106
+
+# Permitir acceso desde Back Office a Windows Server y sus réplicas
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.100
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.102
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.103
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.104
+
+# Permitir acceso desde Back Office a servidor de monitoreo
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.110
+
+# Permitir acceso desde Back Office a servidores de API y aplicaciones
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.108
+ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.107
+
+# Denegar acceso desde Back Office a servidor de correo
+REJECT      loc:192.168.1.101/24     dmz:192.168.1.112
+
+# Permitir acceso desde Back Office a servidor de alojamiento de videos
+ACCEPT      loc:192.168.1.101/24    dmz:192.168.1.111
+EOL'
+
+    # Configurar NAT en /etc/shorewall/masq (si es necesario)
+sudo bash -c 'cat <<EOL > /etc/shorewall/masq
+#INTERFACE    SOURCE          ADDRESS
+eth0          192.168.1.0/24
+EOL'
+
+# Reiniciar Shorewall para aplicar la configuración
+sudo systemctl restart shorewall
+
+echo "Shorewall configurado y reiniciado correctamente."
+}
+
+
 
 # Menu principal
 while true; do
@@ -146,6 +267,7 @@ while true; do
     echo "8. Instalar dependencias para unir al dominio"
     echo "9. Unir al dominio Blitzcode"
     echo "10. Instalar Node Exporter"
+    echo "11. Configurar Shorewall"
     echo "0. Salir"
     read -p "Opción: " option
 
@@ -161,6 +283,7 @@ while true; do
         8) install_domain_dependencies ;;
         9) join_domain_blitzcode ;;
         10) install_node_exporter ;;
+        11) configure_shorewall ;;
         *) echo "Opción inválida. Inténtelo de nuevo." ;;
     esac
 done
