@@ -172,84 +172,114 @@ EOF'
 }
 
 function configure_shorewall {
-    echo "Configurando Shorewall..."
+# Instalación de Shorewall
+sudo yum install -y shorewall
 
-    # Instalar Shorewall si no está instalado
-    if ! rpm -q shorewall >/dev/null 2>&1; then
-        echo "Instalando Shorewall..."
-        sudo yum install -y shorewall
-    fi
-
-    # Habilitar Shorewall en shorewall.conf
-    sudo sed -i 's/STARTUP_ENABLED=No/STARTUP_ENABLED=Yes/' /etc/shorewall/shorewall.conf
-
-    # Configurar zonas en /etc/shorewall/zones
-    sudo bash -c 'cat <<EOL > /etc/shorewall/zones
-#ZONE    TYPE        OPTIONS
+# Configuración de zonas
+echo "Configurando zonas..."
+cat <<EOF | sudo tee /etc/shorewall/zones
+#ZONE    TYPE      OPTIONS
 fw       firewall
-loc      ipv4
-dmz      ipv4
-net      ipv4
-EOL'
+lan      ipv4      nosmurfs,tcpflags=1,routeback=1,routefilter=1
+net      ipv4      dhcp,nosmurfs,tcpflags=1,routeback=1,routefilter=1
+EOF
 
-    # Configurar interfaces en /etc/shorewall/interfaces
-    sudo bash -c 'cat <<EOL > /etc/shorewall/interfaces
+# Configuración de interfaces
+echo "Configurando interfaces..."
+
+cat <<EOF | sudo tee /etc/shorewall/interfaces
 #ZONE    INTERFACE    BROADCAST    OPTIONS
-loc      enp0s3         detect       dhcp
-dmz      enp0s3         detect       dhcp
-net      enp0s8         detect       dhcp
-EOL'
+lan      enp0s3       detect       dhcp
+net      enp0s8       detect       dhcp
+EOF
 
-    # Configurar políticas en /etc/shorewall/policy
-    sudo bash -c 'cat <<EOL > /etc/shorewall/policy
-#SOURCE    DEST    POLICY     LOG LEVEL
-loc        net     ACCEPT
-dmz        net     ACCEPT
-loc        dmz     ACCEPT
-dmz        loc     ACCEPT
-loc        all     DROP       info
-dmz        all     DROP       info
-net        all     DROP       info
-all        all     REJECT     info
-EOL'
+# Configuración de políticas
+echo "Configurando politicas..."
 
-    # Configurar reglas en /etc/shorewall/rules
-    sudo bash -c 'cat <<EOL > /etc/shorewall/rules
-#ACTION     SOURCE                  DEST            PROTO    DEST PORT   SOURCE PORT
-# Permitir acceso desde Back Office a servidores de base de datos
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.105
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.106
+cat <<EOF | sudo tee /etc/shorewall/policy
+#SOURCE    DEST      POLICY      LOG LEVEL    LIMIT
+fw         all       ACCEPT
+lan        all       REJECT      info
+net        all       DROP        info
+all        all       REJECT      info
+EOF
 
-# Permitir acceso desde Back Office a Windows Server y sus réplicas
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.100
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.102
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.103
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.104
+# Configuración de reglas
+echo "Configurando reglas..."
 
-# Permitir acceso desde Back Office a servidor de monitoreo
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.110
+cat <<EOF | sudo tee /etc/shorewall/rules
+#ACTION    SOURCE          DEST        PROTO   DEST PORT     SOURCE PORT
+ACCEPT     192.168.1.101   $FW         tcp     22            # SSH desde back office
+ACCEPT     192.168.1.101   192.168.1.105  tcp   3306         # MySQL DB1 desde back office
+ACCEPT     192.168.1.101   192.168.1.106  tcp   3306         # MySQL DB2 (Replicación) desde back office
+ACCEPT     192.168.1.101   192.168.1.100  tcp   3389         # Windows Server principal desde back office
+ACCEPT     192.168.1.101   192.168.1.102  tcp   3389         # Windows Server réplica 1 desde back office
+ACCEPT     192.168.1.101   192.168.1.103  tcp   3389         # Windows Server réplica 2 desde back office
+ACCEPT     192.168.1.101   192.168.1.104  tcp   3389         # Windows Server solo lectura desde back office
+ACCEPT     192.168.1.101   192.168.1.110  tcp   9090         # Prometheus desde back office
+ACCEPT     192.168.1.101   192.168.1.108  tcp   80           # API OAuth y videos desde back office
+ACCEPT     192.168.1.101   192.168.1.107  tcp   80           # Aplicación de backoffice desde back office
+ACCEPT     192.168.1.101   192.168.1.112  tcp   25           # SMTP4dev desde back office
+ACCEPT     192.168.1.101   192.168.1.111  tcp   80           # Servidor de videos desde back office
 
-# Permitir acceso desde Back Office a servidores de API y aplicaciones
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.108
-ACCEPT      loc:192.168.1.101/24     dmz:192.168.1.107
+# Permitir conexiones PPTP hacia back office
+ACCEPT     net             192.168.1.101   tcp     pptp
 
-# Denegar acceso desde Back Office a servidor de correo
-REJECT      loc:192.168.1.101/24     dmz:192.168.1.112
+# Permitir acceso desde la LAN al firewall
+ACCEPT     lan             $FW             icmp    -            -             # Permitir ping al firewall
+ACCEPT     lan             $FW             tcp     22            -             # Permitir SSH al firewall
+EOF
 
-# Permitir acceso desde Back Office a servidor de alojamiento de videos
-ACCEPT      loc:192.168.1.101/24    dmz:192.168.1.111
-EOL'
+# Configuración de hosts
+echo "Configurando hosts..."
 
-    # Configurar NAT en /etc/shorewall/masq (si es necesario)
-sudo bash -c 'cat <<EOL > /etc/shorewall/masq
-#INTERFACE    SOURCE          ADDRESS
-eth0          192.168.1.0/24
-EOL'
+cat <<EOF | sudo tee /etc/shorewall/hosts
+#ZONE    HOST(S)
+lan      enp0s3:192.168.1.0/24
+net      enp0s8:dhcp
+EOF
 
-# Reiniciar Shorewall para aplicar la configuración
-sudo systemctl restart shorewall
+# Habilitar clampmss en Shorewall
+echo "Habilitando clampmss..."
 
-echo "Shorewall configurado y reiniciado correctamente."
+sudo sed -i 's/^#?CLAMPMSS=.*$/CLAMPMSS=Yes/' /etc/shorewall/shorewall.conf
+
+# Habilitar Shorewall en el inicio del sistema
+echo "Habilitando Shorewall al inicio del sistema..."
+
+sudo sed -i 's/STARTUP_ENABLED=.*/STARTUP_ENABLED=Yes/' /etc/shorewall/shorewall.conf
+
+# Habilitar IP forwarding en sysctl.conf
+echo "Habilitando IP forwarding en sysctl.conf..."
+
+sudo sed -i '/net.ipv4.ip_forward/s/^#//g' /etc/sysctl.conf
+
+# Reiniciar configuración de sysctl
+echo "Reiniciando configuracion en sysctl.conf..."
+
+sudo sysctl -p /etc/sysctl.conf
+
+# Habilitar DETECT_DNAT_IPADDRS en Shorewall
+echo "Habilitando DETECT_DNAT_IPADDRS en Shorewall..."
+
+sudo sed -i 's/^#?DETECT_DNAT_IPADDRS=.*$/DETECT_DNAT_IPADDRS=Yes/' /etc/shorewall/shorewall.conf
+
+# Habilitar FASTACCEPT en Shorewall
+echo "Habilitando FASTACCEPT en Shorewall..."
+
+sudo sed -i 's/^#?FASTACCEPT=.*$/FASTACCEPT=Yes/' /etc/shorewall/shorewall.conf
+
+# Habilitar IP_FORWARDING en Shorewall
+echo "Habilitando IP_FORWARDING en Shorewall..."
+
+sudo sed -i 's/^#?IP_FORWARDING=.*$/IP_FORWARDING=On/' /etc/shorewall/shorewall.conf
+
+# Habilitar y arrancar Shorewall
+sudo systemctl enable shorewall
+sudo systemctl start shorewall
+
+# Mostrar estado de Shorewall
+sudo shorewall status
 }
 
 
