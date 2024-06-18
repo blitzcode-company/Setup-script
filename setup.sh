@@ -179,8 +179,8 @@ sudo yum install -y shorewall
 cat <<EOF | sudo tee /etc/shorewall/zones
 #ZONE    TYPE      OPTIONS
 fw       firewall
-lan      ipv4      nosmurfs,tcpflags=1,routeback=1,routefilter=1
-net      ipv4      dhcp,nosmurfs,tcpflags=1,routeback=1,routefilter=1
+lan      ipv4      
+net      ipv4      
 EOF
 
 # Configuración de interfaces
@@ -202,7 +202,7 @@ EOF
 # Configuración de reglas
 cat <<EOF | sudo tee /etc/shorewall/rules
 #ACTION    SOURCE          DEST        PROTO   DEST PORT     SOURCE PORT
-ACCEPT     192.168.1.101   $FW         tcp     22            # SSH desde back office
+ACCEPT     192.168.1.101   fw             tcp     22         # SSH desde back office
 ACCEPT     192.168.1.101   192.168.1.105  tcp   3306         # MySQL DB1 desde back office
 ACCEPT     192.168.1.101   192.168.1.106  tcp   3306         # MySQL DB2 (Replicación) desde back office
 ACCEPT     192.168.1.101   192.168.1.100  tcp   3389         # Windows Server principal desde back office
@@ -219,8 +219,8 @@ ACCEPT     192.168.1.101   192.168.1.111  tcp   80           # Servidor de video
 ACCEPT     net             192.168.1.101   tcp     pptp
 
 # Permitir acceso desde la LAN al firewall
-ACCEPT     lan             $FW             icmp    -            -             # Permitir ping al firewall
-ACCEPT     lan             $FW             tcp     22            -             # Permitir SSH al firewall
+ACCEPT     lan              fw            icmp    -            -             # Permitir ping al firewall
+ACCEPT     lan              fw             tcp     22            -             # Permitir SSH al firewall
 EOF
 
 # Habilitar clampmss en Shorewall
