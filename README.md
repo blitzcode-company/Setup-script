@@ -33,4 +33,5 @@ Opciones disponibles
   8. Instalar dependencias para unir al dominio: Instala paquetes necesarios para unirse a un dominio.
   9. Unir al dominio Blitzcode: Guía para unirse al dominio Blitzcode y configurar SSSD.
   10. Instalar Node Exporter: Descarga, instala y configura Node Exporter para que se ejecute como un servicio.
+  11. Instala y configuracion de Shorewall: Descarga, instala y configura el Shorewall
   0. Termina la ejecución del script.
