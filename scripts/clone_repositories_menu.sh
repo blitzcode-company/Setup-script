@@ -6,7 +6,73 @@ cd "$(dirname "$0")/../../"
 clone_and_move_docker() {
     git clone https://github.com/blitzcode-company/Docker.git &&
     mv Docker/* . &&
-    rm -r Docker
+    sudo rm -r Docker
+}
+
+clone_and_setup_blitzvideo_api() {
+    git clone https://github.com/blitzcode-company/Blitzvideo-api.git &&
+    cd Blitzvideo-api &&
+    read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
+    if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+        composer install
+        cp .env.example .env
+        php artisan key:generate
+    fi
+    cd ..
+}
+
+clone_and_setup_oauth_api() {
+    git clone https://github.com/blitzcode-company/Oauth-api.git &&
+    cd Oauth-api &&
+    read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
+    if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+        composer install
+        cp .env.example .env
+        php artisan key:generate
+    fi
+    cd ..
+}
+
+clone_and_setup_blitzvideo_auth() {
+    git clone https://github.com/blitzcode-company/Blitzvideo-Auth.git &&
+    cd Blitzvideo-Auth &&
+    read -p "¿Quieres ejecutar 'npm install'?' (y/n): " install_option
+    if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+        npm install
+    fi
+    cd ..
+}
+
+clone_and_setup_backoffice() {
+    git clone https://github.com/blitzcode-company/Backoffice.git &&
+    cd Backoffice &&
+    read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
+    if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+        composer install
+        cp .env.example .env
+        php artisan key:generate
+    fi
+    cd ..
+}
+
+clone_and_setup_blitzvideo_visualizer() {
+    git clone https://github.com/blitzcode-company/Blitzvideo-Visualizer.git &&
+    cd Blitzvideo-Visualizer &&
+    read -p "¿Quieres ejecutar 'npm install'?' (y/n): " install_option
+    if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+        npm install
+    fi
+    cd ..
+}
+
+clone_and_setup_blitzvideo_creadores() {
+    git clone https://github.com/blitzcode-company/Blitzvideo-Creadores.git &&
+    cd Blitzvideo-Creadores &&
+    read -p "¿Quieres ejecutar 'npm install'?' (y/n): " install_option
+    if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+        npm install
+    fi
+    cd ..
 }
 
 while true; do
@@ -26,12 +92,12 @@ while true; do
 
     case $repo_option in
         0) break ;;
-        1) git clone https://github.com/blitzcode-company/Blitzvideo-api.git ;;
-        2) git clone https://github.com/blitzcode-company/Oauth-api.git ;;
-        3) git clone https://github.com/blitzcode-company/Blitzvideo-Auth.git ;;
-        4) git clone https://github.com/blitzcode-company/Blitzvideo-Visualizer.git ;;
-        5) git clone https://github.com/blitzcode-company/Blitzvideo-Creadores.git ;;
-        6) git clone https://github.com/blitzcode-company/Backoffice.git ;;
+        1) clone_and_setup_blitzvideo_api ;;
+        2) clone_and_setup_oauth_api ;;
+        3) clone_and_setup_blitzvideo_auth ;;
+        4) clone_and_setup_blitzvideo_visualizer ;;
+        5) clone_and_setup_blitzvideo_creadores ;;
+        6) clone_and_setup_backoffice ;;
         7) git clone https://github.com/blitzcode-company/Mysql-master.git ;;
         8) git clone https://github.com/blitzcode-company/Mysql-slave.git ;;
         9) git clone https://github.com/blitzcode-company/Monitoreo.git ;;
