@@ -33,5 +33,19 @@ Opciones disponibles
   8. Instalar dependencias para unir al dominio: Instala paquetes necesarios para unirse a un dominio.
   9. Unir al dominio Blitzcode: Guía para unirse al dominio Blitzcode y configurar SSSD.
   10. Instalar Node Exporter: Descarga, instala y configura Node Exporter para que se ejecute como un servicio.
-  11. Instala y configuracion de Shorewall: Descarga, instala y configura el Shorewall
+  11. Clonar repositorios: Muestra un submenú para clonar diversos repositorios del proyecto Blitzcode
+    - Blitzvideo-api
+    - Oauth-api
+    - Blitzvideo-Auth
+    - Blitzvideo-Visualizer
+    - Blitzvideo-Creadores
+    - Backoffice
+    - Mysql-master
+    - Mysql-slave
+    - Monitoreo
+    - Docker 
   0. Termina la ejecución del script.
+
+**Nota:** 
+Para clonar los repositorios, selecciona la opción 11 y luego elige el repositorio que deseas clonar del submenú, se clonan un nivel fuera del repositorio de setup-script. 
+Para el repositorio Docker, los archivos se moverán a la raíz del proyecto y se eliminará la carpeta clonada.
