@@ -7,12 +7,18 @@ wget https://unofficial-builds.nodejs.org/download/release/v20.13.1/node-v20.13.
 
 tar zxf node-v20.13.1-linux-x64-glibc-217.tar.gz
 
+echo "Contenido del archivo extraído:"
+ls node-v20.13.1-linux-x64-glibc-217
+
 if [ -d "$INSTALL_DIR" ]; then
     mv "$INSTALL_DIR" "$INSTALL_DIR.old"
 fi
 
 mkdir -p "$(dirname "$INSTALL_DIR")"
-cp -r node-v20.13.1-linux-x64-glibc-217 "$INSTALL_DIR"
+mv node-v20.13.1-linux-x64-glibc-217 "$INSTALL_DIR"
+
+echo "Contenido del directorio de instalación:"
+ls "$INSTALL_DIR"
 
 export PATH=$INSTALL_DIR/bin:$PATH
 
