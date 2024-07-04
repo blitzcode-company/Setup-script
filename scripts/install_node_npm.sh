@@ -1,9 +1,17 @@
 #!/bin/bash
 
 echo "Instalando Node.js y npm..."  
+git clone https://github.com/nodejs/node
+cd node
 
-yum install -y gcc-c++ make
+git checkout v20.11.0
 
-curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-sudo yum install -y nodejs
+./configure
+make -j4
+
+sudo make install
+
+node -v
+npm -v
+
 echo "Node.js y npm instalados."
