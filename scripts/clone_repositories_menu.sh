@@ -63,6 +63,7 @@ clone_and_setup_oauth_api() {
             composer install
             cp .env.example .env
             php artisan key:generate
+            php artisan passport:keys
         fi
         cd ..
     else
