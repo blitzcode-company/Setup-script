@@ -1,5 +1,5 @@
 #!/bin/bash
 
 echo "Actualizando el sistema..."
-sudo yum update -y
+sudo dnf update -y
 echo "Sistema actualizado."

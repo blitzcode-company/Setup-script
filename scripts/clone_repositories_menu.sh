@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 BLITZVIDEO_API_REPO="https://github.com/blitzcode-company/Blitzvideo-api.git"
 OAUTH_API_REPO="https://github.com/blitzcode-company/Oauth-api.git"
 BLITZVIDEO_AUTH_REPO="https://github.com/blitzcode-company/Blitzvideo-Auth.git"
