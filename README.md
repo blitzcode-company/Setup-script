@@ -47,10 +47,12 @@ Opciones disponibles
   4. **Blitzvideo-Visualizer**
   5. **Blitzvideo-Creadores**
   6. **Backoffice**
-  7. **Mysql-master**
-  8. **Mysql-slave**
-  9. **Monitoreo**
-  10. **Docker**
+  7. **Api-pagos**
+  8. **Mysql-master**
+  9. **Mysql-slave**
+  10. **Monitoreo**
+  11. **Docker**
+
 
 
 **Nota:** 

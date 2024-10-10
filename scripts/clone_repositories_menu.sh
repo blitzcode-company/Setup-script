@@ -6,6 +6,7 @@ BLITZVIDEO_AUTH_REPO="https://github.com/blitzcode-company/Blitzvideo-Auth.git"
 BLITZVIDEO_VISUALIZER_REPO="https://github.com/blitzcode-company/Blitzvideo-Visualizer.git"
 BLITZVIDEO_CREADORES_REPO="https://github.com/blitzcode-company/Blitzvideo-Creadores.git"
 BACKOFFICE_REPO="https://github.com/blitzcode-company/Backoffice.git"
+API_PAGOS_REPO="https://github.com/blitzcode-company/api-pagos.git"
 MYSQL_MASTER_REPO="https://github.com/blitzcode-company/Mysql-master.git"
 MYSQL_SLAVE_REPO="https://github.com/blitzcode-company/Mysql-slave.git"
 MONITOREO_REPO="https://github.com/blitzcode-company/Monitoreo.git"
@@ -18,6 +19,7 @@ BLITZVIDEO_AUTH_DIR="Blitzvideo-Auth"
 BLITZVIDEO_VISUALIZER_DIR="Blitzvideo-Visualizer"
 BLITZVIDEO_CREADORES_DIR="Blitzvideo-Creadores"
 BACKOFFICE_DIR="Backoffice"
+API_PAGOS_DIR="api-pagos"
 DOCKER_DIR="Docker"
 
 current_dir=$(pwd)
@@ -106,6 +108,24 @@ clone_and_setup_backoffice() {
     fi
 }
 
+clone_and_setup_api_pagos() {
+    if [ ! -d "$API_PAGOS_DIR" ]; then
+        git clone $API_PAGOS_REPO &&
+        cd $API_PAGOS_DIR &&
+        read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
+        if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
+            composer install
+            cp .env.example .env
+            php artisan key:generate
+        fi
+        cd ..
+    else
+        echo "------------------------------------"
+        echo "El repositorio ya ha sido clonado."
+        echo "------------------------------------"
+    fi
+}
+
 clone_and_setup_blitzvideo_visualizer() {
     if [ ! -d "$BLITZVIDEO_VISUALIZER_DIR" ]; then
         git clone $BLITZVIDEO_VISUALIZER_REPO &&
@@ -146,10 +166,11 @@ while true; do
     echo "4. Blitzvideo-Visualizer (Frontend)"
     echo "5. Blitzvideo-Creadores (Frontend)"
     echo "6. Backoffice"
-    echo "7. Mysql-master (Base de Datos)"
-    echo "8. Mysql-slave (Base de Datos)"
-    echo "9. Monitoreo (Monitoreo)"
-    echo "10. Docker (Dockerfiles y docker-compose)"
+    echo "7. Api-pagos (Backend)"
+    echo "8. Mysql-master (Base de Datos)"
+    echo "9. Mysql-slave (Base de Datos)"
+    echo "10. Monitoreo (Monitoreo)"
+    echo "11. Docker (Dockerfiles y docker-compose)"
     echo "0. Volver al menú principal"
     read -p "Opción: " repo_option
 
@@ -161,10 +182,11 @@ while true; do
         4) clone_and_setup_blitzvideo_visualizer ;;
         5) clone_and_setup_blitzvideo_creadores ;;
         6) clone_and_setup_backoffice ;;
-        7) git clone $MYSQL_MASTER_REPO ;;
-        8) git clone $MYSQL_SLAVE_REPO ;;
-        9) git clone $MONITOREO_REPO ;;
-        10) clone_and_move_docker ;;
+        7) clone_and_setup_api_pagos ;;
+        8) git clone $MYSQL_MASTER_REPO ;;
+        9) git clone $MYSQL_SLAVE_REPO ;;
+        10) git clone $MONITOREO_REPO ;;
+        11) clone_and_move_docker ;;
         *) echo "Opción inválida. Inténtelo de nuevo." ;;
     esac
 done
