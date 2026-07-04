@@ -9,45 +9,49 @@ echo "=== 1. Optimizando configuración de Red y DNS ==="
 
 echo "Ajustando enp0s3..."
 sudo nmcli connection modify enp0s3 ipv4.ignore-auto-dns yes
-sudo nmcli connection modify enp0s3 ipv4.dns "$DC_IP"
+sudo nmcli connection modify enp0s3 ipv4.dns "$DC_IP, 8.8.8.8"
 sudo nmcli connection modify enp0s3 ipv4.dns-search "$DOMAIN"
 sudo nmcli connection up enp0s3
 
 echo "Ajustando enp0s8..."
-sudo nmcli connection modify enp0s8 ipv4.dns "$DC_IP"
+sudo nmcli connection modify enp0s8 ipv4.dns "$DC_IP, 8.8.8.8"
 sudo nmcli connection modify enp0s8 ipv4.dns-search "$DOMAIN"
 sudo nmcli connection up enp0s8
+
+echo "=== 2. Forzando resolución local de IP para el Dominio ==="
+
+sudo sed -i "/$DOMAIN/d" /etc/hosts || true
+echo "$DC_IP $DOMAIN" | sudo tee -a /etc/hosts
 
 echo "Esperando 3 segundos a que la red estabilice..."
 sleep 3
 
-echo "=== 2. Limpiando residuos de intentos anteriores ==="
+echo "=== 3. Limpiando residuos de intentos anteriores ==="
 sudo realm leave || true
 sudo systemctl stop sssd || true
 
-echo "=== 3. Descubriendo el dominio ==="
+echo "=== 4. Descubriendo el dominio ==="
 sudo realm discover $DOMAIN
 
-echo "=== 4. Uniéndose al dominio ==="
+echo "=== 5. Uniéndose al dominio ==="
 read -p "Ingrese el nombre de usuario del administrador del dominio: " admin_user
 sudo realm join --user=$admin_user $DOMAIN
 
-echo "=== 5. Ajustando permisos de sssd.conf ==="
+echo "=== 6. Ajustando permisos de sssd.conf ==="
 sudo chmod 600 /etc/sssd/sssd.conf
 
-echo "=== 6. Habilitando servicios requeridos ==="
+echo "=== 7. Habilitando servicios requeridos ==="
 sudo systemctl enable sssd oddjobd
 sudo systemctl start sssd oddjobd
 
-echo "=== 7. Configurando creación automática de Homes (authselect) ==="
-
+echo "=== 8. Configurando creación automática de Homes (authselect) ==="
 sudo authselect enable-feature with-mkhomedir
 sudo systemctl restart oddjobd
 
-echo "=== 8. Reiniciando sssd ==="
+echo "=== 9. Reiniciando sssd ==="
 sudo systemctl restart sssd
 
-echo "=== 9. Verificando configuración de dominio ==="
+echo "=== 10. Verificando configuración de dominio ==="
 echo "----------------------------------------"
 realm list
 echo "----------------------------------------"
