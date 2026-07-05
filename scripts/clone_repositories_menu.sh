@@ -46,8 +46,8 @@ clone_and_setup_blitzvideo_api() {
         cd $BLITZVIDEO_API_DIR &&
         read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
         if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
-            composer install
             cp .env.example .env
+            composer install --no-interaction --ansi
             php artisan key:generate
         fi
         cd ..
@@ -57,14 +57,15 @@ clone_and_setup_blitzvideo_api() {
         echo "------------------------------------"
     fi
 }
+
 clone_and_setup_blitzvideo_api_moderadores() {
     if [ ! -d "$MODERADORES_API_DIR" ]; then
         git clone $MODERADORES_REPO &&
         cd $MODERADORES_API_DIR &&
         read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
         if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
-            composer install
             cp .env.example .env
+            composer install --no-interaction --ansi
             php artisan key:generate
         fi
         cd ..
@@ -81,8 +82,8 @@ clone_and_setup_oauth_api() {
         cd $OAUTH_API_DIR &&
         read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
         if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
-            composer install
             cp .env.example .env
+            composer install --no-interaction --ansi
             php artisan key:generate
             php artisan passport:keys
         fi
@@ -116,8 +117,8 @@ clone_and_setup_backoffice() {
         cd $BACKOFFICE_DIR &&
         read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
         if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
-            composer install
             cp .env.example .env
+            composer install --no-interaction --ansi
             php artisan key:generate
         fi
         cd ..
@@ -134,8 +135,8 @@ clone_and_setup_api_pagos() {
         cd $API_PAGOS_DIR &&
         read -p "¿Quieres ejecutar 'composer install' y 'cp .env.example .env'? (y/n): " install_option
         if [[ "$install_option" == "y" || "$install_option" == "Y" ]]; then
-            composer install
             cp .env.example .env
+            composer install --no-interaction --ansi
             php artisan key:generate
         fi
         cd ..
