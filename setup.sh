@@ -13,6 +13,7 @@ while true; do
     echo "9. Unir al dominio Blitzcode"
     echo "10. Instalar Node Exporter"
     echo "11. Clonar repositorios"
+    echo "12. Sincronizar con servidor NTP Maestro"
     echo "0. Salir"
     read -p "Opción: " option
 
@@ -29,6 +30,7 @@ while true; do
         9) ./scripts/join_domain_blitzcode.sh ;;
         10) ./scripts/install_node_exporter.sh ;;
         11) ./scripts/clone_repositories_menu.sh ;;
+        12) ./scripts/configure_ntp_client.sh ;;
         *) echo "Opción inválida. Inténtelo de nuevo." ;;
     esac
 done
